@@ -3,7 +3,7 @@
     <div>
       <logo />
       <h1 class="title">
-        chat
+        app
       </h1>
       <h2 class="subtitle">
         My marvelous Nuxt.js project

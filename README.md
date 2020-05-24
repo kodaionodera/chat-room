@@ -20,3 +20,6 @@ $ npm run generate
 ```
 
 For detailed explanation on how things work, check out [Nuxt.js docs](https://nuxtjs.org).
+
+
+Middleware・・・Nuxt が用意している機能で、ページが表示される前の処理を行う場所
