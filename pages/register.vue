@@ -62,7 +62,11 @@
 </template>
 
 <script>
+import { mapMutations } from 'vuex'
+
 export default {
+   middleware: ['checkRegister'],
+
    data() {
     return {
       form: {
@@ -79,7 +83,16 @@ export default {
       }
     }
   },
+
+  computed: {
+   　isValidateError() {
+     　return this.form.name.errorMessage || this.form.imageUrl.errorMessage
+   　}
+ 　},
+
   methods: {
+    ...mapMutations('alert', ['setMessage']),
+    
     selectImage(){
       this.$refs.image.click();
     },
@@ -120,37 +133,55 @@ export default {
     },
 
     validateName() {
-    const { name } = this.form
-    const maxLength = 8
+      const { name } = this.form
+      const maxLength = 8
 
-    if (!name.val) {
-      name.errorMessage = `${name.label}は必須入力項目です`
-      return
+      if (!name.val) {
+        name.errorMessage = `${name.label}は必須入力項目です`
+        return
+      }
+
+      if (name.val.length > maxLength) {
+        name.errorMessage = `${name.label}は${maxLength}文字以内です。`
+        return
+      }
+
+      name.errorMessage = null
+    },
+
+    validateImageUrl() {
+      const { imageUrl } = this.form
+
+      if (!imageUrl.val) {
+        imageUrl.errorMessage = `${imageUrl.label}は必須入力項目です`
+        return
+      }
+
+      imageUrl.errorMessage = null
+    },
+
+    async onSubmit() {
+      const user = await this.$auth()
+      // 未ログインの場合
+      if (!user) this.$router.push('/login')
+       this.validateName();
+       this.validateImageUrl();
+
+      if (this.isValidateError) return
+
+      try {
+        await this.$firestore
+          .collection("users")
+          .doc(user.uid)
+          .set({
+            name: this.form.name.val,
+            iconImageUrl: this.form.imageUrl.val
+          })
+        this.$router.push('/')
+       } catch (e) {
+         this.setMessage({ message: '登録に失敗しました。' })
+      }
     }
-
-    if (name.val.length > maxLength) {
-      name.errorMessage = `${name.label}は${maxLength}文字以内です。`
-      return
-    }
-
-    name.errorMessage = null
-  },
-
-  validateImageUrl() {
-    const { imageUrl } = this.form
-
-    if (!imageUrl.val) {
-      imageUrl.errorMessage = `${imageUrl.label}は必須入力項目です`
-      return
-    }
-
-    imageUrl.errorMessage = null
-  },
-
-   onSubmit() {
-     this.validateName()
-     this.validateImageUrl()
-   }
   }
 }
 </script>
